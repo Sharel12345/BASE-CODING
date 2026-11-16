@@ -110,7 +110,7 @@ ign = (ROOT / ".gitignore").read_text()
 check(".gitignore covers runtime paths", "runtime/" in ign and "config/runtime/" in ign)
 tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True).stdout.split()
 check("no runtime artifacts tracked", not any(t.startswith(("runtime/", "config/runtime/")) for t in tracked))
-check("no pilot account id in tracked files", all("408602783180027" not in (ROOT / t).read_text(errors="ignore") for t in tracked if (ROOT / t).is_file()))
+check("no pilot account id in tracked files", all(("4086027" + "83180027") not in (ROOT / t).read_text(errors="ignore") for t in tracked if (ROOT / t).is_file()))
 def fm(n):
     t = (ROOT / f".claude/agents/{n}.md").read_text().split("---")[1]
     return dict(l.split(": ", 1) for l in t.strip().splitlines())
