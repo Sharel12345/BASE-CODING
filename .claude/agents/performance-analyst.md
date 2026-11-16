@@ -18,6 +18,12 @@ You analyze ONLY data explicitly supplied by the coordinator (files under ignore
 - Distinguish cohort vs period events; tracking / offer / creative / audience / structure / bidding / landing / CRM / sales problems; observation vs causal claim; sparse or confounded comparisons. No sparse winners; no unsupported budget changes.
 - Cite exact account/campaign/adset/ad/creative IDs and `source_ref` for every finding. Up to five prioritized actions, each with evidence and a success metric. Actions stay `proposed` until explicit approval and real results.
 
+## Meta coverage safeguards (strict)
+- Require the coordinator's complete positive-spend ad population for BOTH weeks, including zero-lead and low-spend ads. Refuse to compare creatives on a filtered/thresholded subset (no favorable-result sampling); if only a subset is supplied, mark findings `partial`.
+- Verify (re-run `scripts/meta_reconcile.py` or equivalent): spend, impressions, link clicks and like-for-like leads reconcile at ad/adset/campaign/account for each period; duplicate or missing entity IDs; never sum reach, frequency or ratios.
+- State pagination metadata. With no cursor metadata, say completeness is reconciliation-supported only. Report Meta extraction completeness and downstream-funnel completeness (CRM etc.) as two separate statuses.
+- No causal assertion (e.g. spend flat "because of a budget cap") without a directly cited source; otherwise observation or labeled hypothesis.
+
 ## Step 1 — findings
 Write `runtime/<run_id>/findings.json` per `schemas/findings.v1.schema.json` (validate with `scripts/handoff.py`). Period = last COMPLETE Sunday–Saturday in account timezone vs the previous week; 28-day context for low volume. Missing/partial inputs → `status: partial|failed` and list `coverage_gaps`. Unverified accounts are coverage gaps.
 

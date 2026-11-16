@@ -270,6 +270,12 @@
         },
         "no_owner": {
           "type": "integer"
+        },
+        "approvals_total": {
+          "type": "integer"
+        },
+        "approval_untyped": {
+          "type": "integer"
         }
       },
       "required": [
@@ -277,7 +283,9 @@
         "overdue",
         "awaiting_client_approval",
         "awaiting_manager_approval",
-        "no_owner"
+        "no_owner",
+        "approvals_total",
+        "approval_untyped"
       ],
       "additionalProperties": false
     },

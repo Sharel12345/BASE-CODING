@@ -35,7 +35,8 @@ def build(findings, proposals, review, tasks, tf_read, today):
            "taskflow_read": {"complete": bool(tf_read["complete"]), "reported_count": tf_read.get("reported_count"),
                              "fetched_count": tf_read["fetched_count"], "issues": list(tf_read.get("issues", []))},
            "drafts": [], "already_represented": [], "blocked_proposals": [],
-           "workload": {"open": 0, "overdue": 0, "awaiting_client_approval": 0, "awaiting_manager_approval": 0, "no_owner": 0},
+           "workload": {"open": 0, "overdue": 0, "approvals_total": 0, "awaiting_client_approval": 0,
+                        "awaiting_manager_approval": 0, "approval_untyped": 0, "no_owner": 0},
            "writes_performed": 0}
     for name, art in (("findings", findings), ("proposals", proposals), ("review", review)):
         if art["status"] == "failed":
@@ -47,9 +48,16 @@ def build(findings, proposals, review, tasks, tf_read, today):
         out["blocked_proposals"] = [{"proposal_id": p["proposal_id"], "reason": "TaskFlow read incomplete"} for p in proposals["proposals"]]
         return out
     a = analyze(tasks, [], today)
-    out["workload"] = {"open": a["totals"]["open"], "overdue": len(a["overdue"]),
+    approvals_total = sum(1 for t in tasks if t.get("status") == "approval")  # independent count from the same snapshot
+    out["workload"] = {"open": a["totals"]["open"], "overdue": len(a["overdue"]), "approvals_total": approvals_total,
                        "awaiting_client_approval": len(a["awaiting_client_approval"]),
-                       "awaiting_manager_approval": len(a["awaiting_manager_approval"]), "no_owner": len(a["no_owner"])}
+                       "awaiting_manager_approval": len(a["awaiting_manager_approval"]),
+                       "approval_untyped": len(a["approval_untyped"]), "no_owner": len(a["no_owner"])}
+    w = out["workload"]
+    if w["awaiting_client_approval"] + w["awaiting_manager_approval"] + w["approval_untyped"] != w["approvals_total"]:
+        out["overall_status"] = "failed"
+        out["issues"].append("workload invariant violated: approval subcounts do not sum to approvals_total")
+        return out
     passed, blocked = review_gate(proposals, review)
     out["blocked_proposals"] = blocked
     for p in proposals["proposals"]:

@@ -118,4 +118,23 @@ pa, ch, pm = fm("performance-analyst"), fm("copy-hooks"), fm("project-manager")
 check("agent registrations: names", (pa["name"], ch["name"], pm["name"]) == ("performance-analyst", "copy-hooks", "project-manager"))
 check("agent tools per spec", pa["tools"] == "Read, Glob, Grep, Write, Edit, Bash" and ch["tools"] == "Read, Glob, Grep, Write, Edit")
 check("project-manager tools preserved", pm["tools"] == "Read, Grep, Glob, Bash")
+
+# workload determinism / approval invariant (synthetic)
+def appr(i, kind):
+    t = fx.task(i, f"Approval {i}", status="approval"); t["approval_type"] = kind; return t
+tasks = [appr(1, "client"), appr(2, "client"), appr(3, "manager"), appr(4, None), fx.task(5, "Open"), fx.task(6, "Done", status="done")]
+o = build(t=tasks, rd={"complete": True, "reported_count": 6, "fetched_count": 6, "issues": []})
+w = o["workload"]
+check("workload approvals_total == client+manager+untyped", (w["approvals_total"], w["awaiting_client_approval"], w["awaiting_manager_approval"], w["approval_untyped"]) == (4, 2, 1, 1))
+check("workload open count excludes done", w["open"] == 5 and handoff.validate(o) == [])
+orig = md.analyze
+md.analyze = lambda *a, **k: {**orig(*a, **k), "approval_untyped": []}
+o = build(t=tasks, rd={"complete": True, "reported_count": 6, "fetched_count": 6, "issues": []})
+md.analyze = orig
+check("approval subcount mismatch fails visibly, no drafts", o["overall_status"] == "failed" and o["drafts"] == [] and any("invariant" in i for i in o["issues"]))
+wf = (ROOT / "workflows/weekly-performance.md").read_text(); pa_md = (ROOT / ".claude/agents/performance-analyst.md").read_text()
+for ph in ("EVERY ad with positive spend", "scripts/meta_reconcile.py", "NEVER sum reach", "reconciliation-supported only", "favorable-result sampling"):
+    check(f"workflow persists safeguard: {ph}", ph in wf)
+for ph in ("zero-lead and low-spend", "never sum reach", "reconciliation-supported only", "No causal assertion"):
+    check(f"performance-analyst persists safeguard: {ph}", ph in pa_md)
 sys.exit(0 if ok else 1)

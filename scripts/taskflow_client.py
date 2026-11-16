@@ -80,12 +80,49 @@ def call(action, body=None, *, auth_mode=None, key=None, opener=None, timeout=30
 MAX_REQUESTS = 40  # finite cap on pages per paginated read
 
 
-def paginate(action, list_key, *, id_key="id", max_requests=MAX_REQUESTS, **kw):
+# Explicit per-action record identity. Observed live shapes (synthetic tests mirror them):
+#   users.list    {users:[{id,name,color,open_tasks}], count}                      -> id
+#   clients.list  {clients:[{name,open_tasks,tasks}], count}                       -> NO id; name
+#   projects.list {projects:[{client,name,open_tasks,tasks}], count,
+#                  filtered_by_client}                                             -> NO id; (client, name)
+#   tasks.list    {tasks:[{id,...}], count, limit, offset}                         -> id (strict)
+# Names/composite keys are unverified matching aids, NEVER stable IDs: the server exposes none for
+# clients/projects, and the same project name legitimately exists under different clients.
+IDENTITY = {
+    "tasks.list": ("id",),
+    "users.list": ("id",),
+    "clients.list": ("name",),
+    "projects.list": ("client", "name"),
+}
+LIST_KEYS = {"tasks.list": "tasks", "users.list": "users", "clients.list": "clients", "projects.list": "projects"}
+
+
+def _identity(rec, fields):
+    """Return the record's identity tuple or None when malformed (missing/empty/non-scalar part)."""
+    if not isinstance(rec, dict):
+        return None
+    out = []
+    for f in fields:
+        v = rec.get(f)
+        if isinstance(v, bool) or v is None or not isinstance(v, (str, int)) or (isinstance(v, str) and not v.strip()):
+            return None
+        out.append(v)
+    return tuple(out)
+
+
+def paginate(action, list_key=None, *, id_key=None, id_fields=None, max_requests=MAX_REQUESTS, **kw):
     """Offset-only pagination (never sends `limit`; the server rejects it with 403).
 
-    Returns {records, complete, reported_count, requests, issues}. Never raises on
-    incompleteness: callers must check `complete` and report `issues`.
+    Record identity is explicit per action (see IDENTITY); `id_fields`/`id_key` override it.
+    Returns {records, complete, reported_count, requests, issues, identity_basis}. Never raises on
+    incompleteness: callers must check `complete` and report `issues`. Malformed records (missing
+    identity), duplicate identities, repeated pages, changing counts and short reads all make the
+    result incomplete; nothing is silently dropped.
     """
+    fields = tuple(id_fields) if id_fields else ((id_key,) if id_key else IDENTITY.get(action))
+    list_key = list_key or LIST_KEYS.get(action)
+    if not fields or not list_key:
+        raise TaskFlowError(f"no explicit record identity/list key defined for action: {action}")
     records, seen, issues = [], set(), []
     reported, offset, requests = None, 0, 0
     while True:
@@ -95,8 +132,8 @@ def paginate(action, list_key, *, id_key="id", max_requests=MAX_REQUESTS, **kw):
         body = {"offset": offset} if offset else {}
         data = call(action, body, **kw)
         requests += 1
-        page = data.get(list_key)
-        if not isinstance(page, list) or not isinstance(data.get("count"), int):
+        page = data.get(list_key) if isinstance(data, dict) else None
+        if not isinstance(page, list) or isinstance(data.get("count"), bool) or not isinstance(data.get("count"), int):
             issues.append("unexpected response shape")
             break
         if reported is not None and data["count"] != reported:
@@ -105,12 +142,16 @@ def paginate(action, list_key, *, id_key="id", max_requests=MAX_REQUESTS, **kw):
         reported = data["count"] if reported is None else reported
         if not page:
             break
-        page_ids = [r[id_key] for r in page]
-        dup = [i for i in page_ids if i in seen] + [i for i in set(page_ids) if page_ids.count(i) > 1]
+        ids = [_identity(r, fields) for r in page]
+        bad = sum(1 for i in ids if i is None)
+        if bad:
+            issues.append(f"malformed records without identity {'+'.join(fields)}: {bad}")
+            break  # never skip/guess: the page is unusable, the read is incomplete
+        dup = [i for i in ids if i in seen] + [i for i in set(ids) if ids.count(i) > 1]
         if dup:
             issues.append(f"duplicate ids returned: {len(dup)}")
             break  # repeated/non-advancing page or duplicates within a page
-        seen.update(page_ids)
+        seen.update(ids)
         records.extend(page)
         offset += len(page)
         if offset >= reported:
@@ -118,7 +159,8 @@ def paginate(action, list_key, *, id_key="id", max_requests=MAX_REQUESTS, **kw):
     if len(records) != reported:
         issues.append(f"incomplete: got {len(records)} of {reported}")
     return {"records": records, "complete": not issues, "reported_count": reported,
-            "requests": requests, "issues": issues}
+            "requests": requests, "issues": issues,
+            "identity_basis": {"fields": list(fields), "server_provided_id": fields == ("id",)}}
 
 
 def verify(**kw):
