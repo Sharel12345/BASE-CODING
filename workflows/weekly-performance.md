@@ -10,7 +10,8 @@ Trigger: manual, by the coordinator (main session). **No schedule is created.** 
 Verified accounts only (from ignored `config/runtime/meta-pilot.json`; pilot: one Meta account, ILS, Asia/Jerusalem). Other clients = coverage gaps; never query unrelated accounts. Project mappings are hypotheses unless the user verified them. No Google/CRM coverage.
 
 ## Period
-Last COMPLETE Sunday–Saturday in account timezone vs previous week; 28-day context for low volume.
+"Weekly" is the delivery cadence, NOT a 7-day analysis window. Default window (matches the existing scheduled task's user rule): current = the LAST TWO COMPLETE Sunday–Saturday weeks (14 days) in the account timezone; comparison = the preceding 14 days. Two separate Meta pulls with explicit `time_range` (no presets), explicit dates and conclusions stated per account. Use `python3 scripts/periods.py [YYYY-MM-DD]` (deterministic; Saturday counts as complete only after it ends). Examples: as of 2026-11-16 -> current 2026-11-01..2026-11-14 vs comparison 2026-10-18..2026-10-31; as of Sunday 2026-11-22 -> current 2026-11-08..2026-11-21 vs 2026-10-25..2026-11-07. Longer (28-day) context only for low volume.
+The completed run `wk-2026-11-08` (7-vs-7: 2026-11-08..14 vs 2026-11-01..07) is a **historical integration test** of this pipeline, NOT the current scheduled reporting window; its artifacts must not be presented as the 14-vs-14 report.
 
 ## Strict sequence (each artifact validated by `scripts/handoff.py`; stop on invalid)
 1. **Findings** (`findings.v1`) — coordinator pulls, performance-analyst analyzes.
@@ -38,7 +39,7 @@ Read-only everywhere; zero TaskFlow writes (`writes_performed: 0`); owners/deadl
 `taskflow_client.paginate` uses explicit per-action identity (`tasks.list`/`users.list`: `id`; `clients.list`: `name`; `projects.list`: `(client, name)`). Names/composite keys are unverified matching aids, never stable IDs. Missing identities, duplicates, repeated pages, count changes or short reads make the read incomplete (no drafts). Workload counts come from the SAME task snapshot; `approvals_total` must equal client + manager + untyped approvals or the step fails.
 
 ## Rerun
-In a new session on this branch: recreate `config/runtime/meta-pilot.json` from `config/meta-pilot.example.json`, run the sequence above (coordinator pulls Meta -> `performance-analyst` -> `copy-hooks` -> `performance-analyst` review (revise and re-review until `supported`) -> `project-manager` -> Hebrew brief). Offline checks: `python3 tests/test_analyze.py && python3 tests/test_pagination.py && python3 tests/test_taskflow_client.py && python3 tests/test_handoff.py && python3 tests/test_meta_reconcile.py`.
+In a new session on this branch: recreate `config/runtime/meta-pilot.json` from `config/meta-pilot.example.json`, run the sequence above (coordinator pulls Meta -> `performance-analyst` -> `copy-hooks` -> `performance-analyst` review (revise and re-review until `supported`) -> `project-manager` -> Hebrew brief). Offline checks: `python3 tests/test_periods.py && python3 tests/test_analyze.py && python3 tests/test_pagination.py && python3 tests/test_taskflow_client.py && python3 tests/test_handoff.py && python3 tests/test_meta_reconcile.py`.
 
 ## Persistence limits
 Cloud containers are ephemeral: `runtime/` and `config/runtime/` are Git-ignored and are lost when the container is reclaimed. Only code, definitions, schemas, docs and synthetic fixtures persist (via push). Re-create the runtime pilot config from `config/meta-pilot.example.json` each session.

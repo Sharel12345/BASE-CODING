@@ -28,10 +28,11 @@ Produce a reliable Hebrew operational report: what needs progress, what is overd
 - `scripts/daily_report.py` – end-to-end read-only run: paginated read → analysis → Hebrew summary (writes nothing to disk)
 - `.claude/agents/performance-analyst.md`, `copy-hooks.md` – cloud-portable adaptations of the local agents (not byte-identical)
 - `workflows/weekly-performance.md` – unified weekly workflow (coordinator reads Meta read-only; allowlist in `config/meta-allowlist.json`)
+- `scripts/periods.py` – deterministic reporting windows (last two complete Sun–Sat weeks vs preceding 14 days)
 - `scripts/meta_reconcile.py` – Meta extraction coverage reconciliation (ad=adset=campaign=account; additive metrics only)
 - `schemas/*.v1.schema.json`, `scripts/handoff.py`, `scripts/manager_drafts.py` – versioned handoff contracts, gates, draft builder
 - `runtime/`, `config/runtime/` – Git-ignored runtime artifacts/pilot mapping (ephemeral in cloud)
-- `tests/` – synthetic fixtures + checks: `python3 tests/test_analyze.py`, `test_pagination.py`, `test_taskflow_client.py`, `test_handoff.py`, `test_meta_reconcile.py`
+- `tests/` – synthetic fixtures + checks: `python3 tests/test_analyze.py`, `test_pagination.py`, `test_taskflow_client.py`, `test_handoff.py`, `test_meta_reconcile.py`, `test_periods.py`
 
 ## TaskFlow connection
 TaskFlow API v1 is documented in `config/sources.json`; client: `scripts/taskflow_client.py` (read-only allowlist). Default auth: proxy mode (Network secrets inject the Bearer header; Python sends none). Env mode (`TASKFLOW_API_KEY`) only if explicitly selected. Verified once via `python3 scripts/daily_report.py` (see `config/sources.json` metadata). Re-verify each session before claiming connected. Pagination is offset-only; never send `limit` (403). Report any incomplete read. No stable client/project IDs exist: mapping is by name and unverified. Time in approval is unknown; never infer it from creation date.

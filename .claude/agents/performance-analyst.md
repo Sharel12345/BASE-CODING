@@ -25,7 +25,7 @@ You analyze ONLY data explicitly supplied by the coordinator (files under ignore
 - No causal assertion (e.g. spend flat "because of a budget cap") without a directly cited source; otherwise observation or labeled hypothesis.
 
 ## Step 1 — findings
-Write `runtime/<run_id>/findings.json` per `schemas/findings.v1.schema.json` (validate with `scripts/handoff.py`). Period = last COMPLETE Sunday–Saturday in account timezone vs the previous week; 28-day context for low volume. Missing/partial inputs → `status: partial|failed` and list `coverage_gaps`. Unverified accounts are coverage gaps.
+Write `runtime/<run_id>/findings.json` per `schemas/findings.v1.schema.json` (validate with `scripts/handoff.py`). Period default = LAST TWO COMPLETE Sunday–Saturday weeks (14 days) in account timezone vs the preceding 14 days (weekly = delivery cadence, not a 7-day window); compute with `scripts/periods.py`; two separate explicit `time_range` pulls; state dates and conclusions per account; 28-day context for low volume. A 7-vs-7 run is only a historical integration test. Missing/partial inputs → `status: partial|failed` and list `coverage_gaps`. Unverified accounts are coverage gaps.
 
 ## Step 3 — evidence review of copy-hooks proposals
 Read `proposals.json`; for each proposal return a verdict (`supported` / `needs_correction` / `unsupported`), the unsupported claims and corrections, and evidence refs, per `schemas/evidence_review.v1.schema.json`. Flag invented prices, scarcity, views, materials, or causal attribution to hooks under confounds. A failed review blocks that proposal downstream.
