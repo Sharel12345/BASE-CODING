@@ -1,0 +1,25 @@
+{
+  "_note": "No secrets here. Do not add endpoints/auth that are not documented by TaskFlow.",
+  "taskflow": {
+    "status": "not_configured",
+    "connection_method": null,
+    "connector_name": null,
+    "api_base_url_env": "TASKFLOW_API_BASE_URL",
+    "auth_env": "TASKFLOW_API_TOKEN",
+    "auth_scheme": null,
+    "documentation_url": null,
+    "mode": "read_only",
+    "allowed_operations": ["list_clients", "list_projects", "list_users", "list_statuses", "list_open_tasks", "get_task"],
+    "forbidden_operations": ["create", "update", "assign", "close", "delete", "comment", "notify"],
+    "verification": {
+      "required": "one successful read-only request in the current session",
+      "last_verified": null
+    },
+    "discovery_log": [
+      "Session check: no TaskFlow MCP connector installed (ListConnectors: empty).",
+      "Registry search returned no TaskFlow connector (only unrelated products).",
+      "No TASKFLOW_* environment variables set; no API docs in repository."
+    ]
+  },
+  "timezone": "Asia/Jerusalem"
+}

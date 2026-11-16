@@ -1,0 +1,8 @@
+{
+  "_label": "SYNTHETIC TEST DATA - NOT REAL",
+  "proposals": [
+    {"id": "SYN-PR1", "title": "Prepare the monthly report", "client_id": "SYN-C1", "project_id": "SYN-P2", "source_reference": "SYN-SRC-4", "priority": "medium"},
+    {"id": "SYN-PR2", "title": "Idea: short video series", "kind": "creative_idea", "client_id": "SYN-C1", "project_id": "SYN-P1", "source_reference": "SYN-SRC-9"},
+    {"id": "SYN-PR3", "title": "Collect brand assets from client", "client_id": "SYN-C1", "project_id": "SYN-P1", "source_reference": "SYN-SRC-10", "priority": "high"}
+  ]
+}

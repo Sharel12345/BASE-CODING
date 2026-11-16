@@ -1,0 +1,11 @@
+{
+  "_note": "Roster is NOT in this repository. Populate from TaskFlow IDs only after a verified read. No real client data in Git.",
+  "version": 1,
+  "match_policy": {
+    "primary_key": "taskflow_ids",
+    "name_matching": "flag_only",
+    "ambiguous_action": "report_in_decisions_needed",
+    "cross_project_merge": false
+  },
+  "clients": []
+}
