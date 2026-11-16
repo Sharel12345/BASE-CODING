@@ -28,4 +28,4 @@ Produce a reliable Hebrew operational report: what needs progress, what is overd
 - `tests/` – synthetic fixtures + checks: `python3 tests/test_analyze.py`
 
 ## TaskFlow connection
-TaskFlow API v1 is documented in `config/sources.json`; client: `scripts/taskflow_client.py` (read-only allowlist). Key: env var `TASKFLOW_API_KEY` only. Status stays `configured_unverified` until `python3 scripts/taskflow_client.py` succeeds (ping, then lists) in the current session; until then run in `disconnected` mode.
+TaskFlow API v1 is documented in `config/sources.json`; client: `scripts/taskflow_client.py` (read-only allowlist). Default auth: proxy mode (Network secrets inject the Bearer header; Python sends none). Env mode (`TASKFLOW_API_KEY`) only if explicitly selected. Status stays `configured_unverified` until `python3 scripts/taskflow_client.py` succeeds (ping, then lists) in the current session; until then run in `disconnected` mode.

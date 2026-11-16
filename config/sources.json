@@ -5,8 +5,8 @@
     "connection_method": "http_api_v1",
     "connector_name": null,
     "api_base_url_env": null,
-    "auth_env": "TASKFLOW_API_KEY",
-    "auth_scheme": "Authorization: Bearer <key>; fallback header X-API-Key",
+    "auth_env": "TASKFLOW_API_KEY (env mode only)",
+    "auth_scheme": "proxy mode: Authorization: Bearer injected by Claude cloud Network secrets at the outbound proxy (exact host + path prefix); Python sends no auth header. env mode (explicit only): Authorization: Bearer from TASKFLOW_API_KEY",
     "documentation_url": "https://sitepass.goil.co.il/tasks/api/v1.php",
     "mode": "read_only",
     "allowed_operations": [
@@ -32,10 +32,29 @@
       "Session check: no TaskFlow MCP connector installed (ListConnectors: empty).",
       "Registry search returned no TaskFlow connector (only unrelated products).",
       "No TASKFLOW_* environment variables set; no API docs in repository.",
-      "API docs provided by user; client: scripts/taskflow_client.py. Key not yet set in environment; no real read performed."
+      "API docs provided by user; client: scripts/taskflow_client.py. Key not yet set in environment; no real read performed.",
+      "Switched default to proxy auth; secret to be configured by user in Network secrets UI; no live request made."
     ],
     "api_base_url": "https://sitepass.goil.co.il/tasks/api/v1.php",
-    "request_format": "POST ?action=<action>, JSON UTF-8 body; response {ok,data}|{ok:false,error}"
+    "request_format": "POST ?action=<action>, JSON UTF-8 body; response {ok,data}|{ok:false,error}",
+    "auth_mode": "proxy",
+    "auth_modes_supported": [
+      "proxy",
+      "env"
+    ],
+    "proxy_secret": {
+      "host": "sitepass.goil.co.il",
+      "path_prefix": "/tasks/api/v1.php",
+      "header": "Authorization: Bearer",
+      "configured": false
+    },
+    "endpoint": {
+      "scheme": "https",
+      "host": "sitepass.goil.co.il",
+      "path": "/tasks/api/v1.php",
+      "redirects": "disallowed",
+      "overridable": false
+    }
   },
   "timezone": "Asia/Jerusalem"
 }
