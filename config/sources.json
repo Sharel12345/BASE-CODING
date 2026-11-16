@@ -1,16 +1,29 @@
 {
   "_note": "No secrets here. Do not add endpoints/auth that are not documented by TaskFlow.",
   "taskflow": {
-    "status": "not_configured",
-    "connection_method": null,
+    "status": "configured_unverified",
+    "connection_method": "http_api_v1",
     "connector_name": null,
-    "api_base_url_env": "TASKFLOW_API_BASE_URL",
-    "auth_env": "TASKFLOW_API_TOKEN",
-    "auth_scheme": null,
-    "documentation_url": null,
+    "api_base_url_env": null,
+    "auth_env": "TASKFLOW_API_KEY",
+    "auth_scheme": "Authorization: Bearer <key>; fallback header X-API-Key",
+    "documentation_url": "https://sitepass.goil.co.il/tasks/api/v1.php",
     "mode": "read_only",
-    "allowed_operations": ["list_clients", "list_projects", "list_users", "list_statuses", "list_open_tasks", "get_task"],
-    "forbidden_operations": ["create", "update", "assign", "close", "delete", "comment", "notify"],
+    "allowed_operations": [
+      "ping",
+      "users.list",
+      "clients.list",
+      "projects.list",
+      "tasks.list",
+      "tasks.get"
+    ],
+    "forbidden_operations": [
+      "users.create",
+      "tasks.create",
+      "tasks.update",
+      "comments.add",
+      "logs.recent"
+    ],
     "verification": {
       "required": "one successful read-only request in the current session",
       "last_verified": null
@@ -18,8 +31,11 @@
     "discovery_log": [
       "Session check: no TaskFlow MCP connector installed (ListConnectors: empty).",
       "Registry search returned no TaskFlow connector (only unrelated products).",
-      "No TASKFLOW_* environment variables set; no API docs in repository."
-    ]
+      "No TASKFLOW_* environment variables set; no API docs in repository.",
+      "API docs provided by user; client: scripts/taskflow_client.py. Key not yet set in environment; no real read performed."
+    ],
+    "api_base_url": "https://sitepass.goil.co.il/tasks/api/v1.php",
+    "request_format": "POST ?action=<action>, JSON UTF-8 body; response {ok,data}|{ok:false,error}"
   },
   "timezone": "Asia/Jerusalem"
 }

@@ -23,8 +23,9 @@ Produce a reliable Hebrew operational report: what needs progress, what is overd
 - `workflows/daily-status.md` – daily procedure and report template
 - `config/sources.json` – TaskFlow connection discovery (no secrets)
 - `config/client-mappings.json` – mapping rules; roster intentionally empty (populate from TaskFlow IDs)
+- `scripts/taskflow_client.py` – read-only API client
 - `scripts/analyze.py` – deterministic reference analyzer (stdlib, offline)
 - `tests/` – synthetic fixtures + checks: `python3 tests/test_analyze.py`
 
 ## TaskFlow connection
-No connector or API documentation is configured yet. Until `config/sources.json` has `status: "configured"` AND a real read-only request has succeeded, run in `disconnected` mode: report only the connection gap.
+TaskFlow API v1 is documented in `config/sources.json`; client: `scripts/taskflow_client.py` (read-only allowlist). Key: env var `TASKFLOW_API_KEY` only. Status stays `configured_unverified` until `python3 scripts/taskflow_client.py` succeeds (ping, then lists) in the current session; until then run in `disconnected` mode.
