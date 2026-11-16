@@ -1,10 +1,22 @@
-"""Deterministic, offline reference analyzer. Read-only: no network, no writes, inputs not mutated."""
+"""Deterministic offline analyzer for the verified TaskFlow task schema. Read-only; inputs not mutated.
+
+Task fields used: id, title, client (name str), project (name str), assignee (dict|None),
+due_date ('YYYY-MM-DD'|None), status (todo|doing|approval|done), approval_type
+(client|manager|None), revision (bool), created_at_local, url, external_task_key.
+Client/project matching is by NAME ONLY and is unverified: no stable IDs exist.
+"""
 import copy
 import datetime as dt
 import re
+import zoneinfo
 
+TZ = zoneinfo.ZoneInfo("Asia/Jerusalem")
 DONE = {"done", "closed", "cancelled"}
 UPCOMING_DAYS = 3
+
+
+def israel_today(now=None):
+    return (now or dt.datetime.now(TZ)).astimezone(TZ).date()
 
 
 def _tokens(s):
@@ -16,41 +28,69 @@ def similar(a, b):
     return bool(ta and tb) and len(ta & tb) / len(ta | tb) >= 0.6
 
 
-def analyze(snapshot, proposals, today):
-    snap = copy.deepcopy(snapshot)
-    today = dt.date.fromisoformat(today)
-    open_tasks = [t for t in snap["tasks"] if t.get("status") not in DONE]
-    out = {"overdue": [], "upcoming": [], "awaiting_approval": [], "blocked": [],
-           "no_owner": [], "proposals": [], "duplicates": [], "decisions_needed": []}
-    for t in open_tasks:
-        ref = {"task_id": t["id"], "project_id": t["project_id"], "client_id": t["client_id"]}
-        due = dt.date.fromisoformat(t["due_date"]) if t.get("due_date") else None
-        if due and due < today:
-            out["overdue"].append({**ref, "basis": "fact", "days_late": (today - due).days})
-        elif due and (due - today).days <= UPCOMING_DAYS:
-            out["upcoming"].append({**ref, "basis": "fact"})
-        if t.get("awaiting") == "client_approval":
-            out["awaiting_approval"].append({**ref, "basis": "fact"})
-        if t.get("blocker"):  # explicit only; inactivity never counts
-            out["blocked"].append({**ref, "basis": "fact", "blocker": t["blocker"]})
-        if not t.get("assignee_id"):
-            out["no_owner"].append({**ref, "basis": "fact"})
-            out["decisions_needed"].append({**ref, "decision": "assign_owner"})
+def _norm(s):
+    return " ".join((s or "").split()).casefold()
+
+
+def _day(v):
+    return dt.date.fromisoformat(v[:10]) if v else None
+
+
+def analyze(tasks, proposals, today):
+    tasks = copy.deepcopy(tasks)
+    today = dt.date.fromisoformat(today) if isinstance(today, str) else today
+    open_ = [t for t in tasks if t.get("status") not in DONE]
+    ref = lambda t, **x: {"task_id": t["id"], "client": t.get("client"), "project": t.get("project"),
+                          "url": t.get("url"), "title": t.get("title"), **x}
+    out = {"as_of": today.isoformat(), "timezone": "Asia/Jerusalem",
+           "totals": {"all": len(tasks), "open": len(open_), "done": len(tasks) - len(open_)},
+           "mapping": {"basis": "names_only", "verified": False},
+           "overdue": [], "due_today": [], "upcoming": [], "no_owner": [],
+           "awaiting_client_approval": [], "awaiting_manager_approval": [], "approval_untyped": [],
+           "revision": [], "no_due_date": [], "blocked": [], "ambiguous_names": [],
+           "time_in_approval": "unknown (no status-change timestamp in data)",
+           "proposals": [], "duplicates": []}
+    for t in open_:
+        due = _day(t.get("due_date"))
+        if due is None:
+            out["no_due_date"].append(ref(t, basis="fact"))
+        elif due < today:
+            out["overdue"].append(ref(t, basis="fact", due_date=t["due_date"], days_late=(today - due).days))
+        elif due == today:
+            out["due_today"].append(ref(t, basis="fact", due_date=t["due_date"]))
+        elif (due - today).days <= UPCOMING_DAYS:
+            out["upcoming"].append(ref(t, basis="fact", due_date=t["due_date"]))
+        if not t.get("assignee"):
+            out["no_owner"].append(ref(t, basis="fact"))
+        if t.get("status") == "approval":
+            kind = t.get("approval_type")
+            key = {"client": "awaiting_client_approval", "manager": "awaiting_manager_approval"}.get(kind, "approval_untyped")
+            out[key].append(ref(t, basis="fact"))
+        if t.get("revision"):
+            out["revision"].append(ref(t, basis="fact"))
+        # no explicit blocker field exists in the data: nothing is ever inferred as blocked
+    for field in ("client", "project"):
+        variants = {}
+        for t in tasks:
+            if t.get(field):
+                variants.setdefault(_norm(t[field]), set()).add(t[field])
+        out["ambiguous_names"] += [{"field": field, "variants": sorted(v)} for v in variants.values() if len(v) > 1]
     for p in proposals:
-        existing = [t for t in snap["tasks"] if t["project_id"] == p["project_id"] and (
-            (p.get("source_reference") and p["source_reference"] == t.get("source_reference"))
-            or similar(p["title"], t["title"]))]
-        if existing:
-            out["duplicates"].append({"proposal_id": p["id"], "existing_task_id": existing[0]["id"]})
+        same = [t for t in tasks if _norm(t.get("client")) == _norm(p.get("client"))
+                and _norm(t.get("project")) == _norm(p.get("project"))]
+        hit = [t for t in same if (p.get("source_reference") and p["source_reference"] == t.get("external_task_key"))
+               or similar(p["title"], t["title"])]
+        if hit:
+            out["duplicates"].append({"proposal_id": p["id"], "existing_task_id": hit[0]["id"]})
             continue
         creative = p.get("kind") == "creative_idea"
         out["proposals"].append({
             "title": p["title"], "description": p.get("description"),
-            "client_id": p["client_id"], "project_id": p["project_id"],
+            "client_id": None, "project_id": None,  # no stable IDs exist; never invented
+            "client_name": p.get("client"), "project_name": p.get("project"),
+            "mapping_status": "unverified_name_based",
             "suggested_assignee_id": p.get("suggested_assignee_id"),
             "suggested_due_date": p.get("suggested_due_date"),
             "priority": p.get("priority"), "source_reference": p.get("source_reference"),
-            "approval_status": "proposed_unapproved" if creative and not p.get("approved")
-            else "pending_review",
-        })
+            "approval_status": "proposed_unapproved" if creative and not p.get("approved") else "pending_review"})
     return out

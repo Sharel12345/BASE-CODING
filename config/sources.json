@@ -1,7 +1,7 @@
 {
   "_note": "No secrets here. Do not add endpoints/auth that are not documented by TaskFlow.",
   "taskflow": {
-    "status": "configured_unverified",
+    "status": "verified_read_only",
     "connection_method": "http_api_v1",
     "connector_name": null,
     "api_base_url_env": null,
@@ -26,14 +26,25 @@
     ],
     "verification": {
       "required": "one successful read-only request in the current session",
-      "last_verified": null
+      "last_verified": "2026-11-16T17:17:16+02:00",
+      "method": "scripts/daily_report.py via proxy auth",
+      "result": {
+        "ping": "ok",
+        "users": 17,
+        "clients": 39,
+        "projects": 117,
+        "tasks_total": 406,
+        "tasks_pages": 9,
+        "tasks_complete": true
+      }
     },
     "discovery_log": [
       "Session check: no TaskFlow MCP connector installed (ListConnectors: empty).",
       "Registry search returned no TaskFlow connector (only unrelated products).",
       "No TASKFLOW_* environment variables set; no API docs in repository.",
       "API docs provided by user; client: scripts/taskflow_client.py. Key not yet set in environment; no real read performed.",
-      "Switched default to proxy auth; secret to be configured by user in Network secrets UI; no live request made."
+      "Switched default to proxy auth; secret to be configured by user in Network secrets UI; no live request made.",
+      "Verified read-only on 2026-11-16T17:17:16+02:00: counts above; no records stored."
     ],
     "api_base_url": "https://sitepass.goil.co.il/tasks/api/v1.php",
     "request_format": "POST ?action=<action>, JSON UTF-8 body; response {ok,data}|{ok:false,error}",
@@ -46,7 +57,7 @@
       "host": "sitepass.goil.co.il",
       "path_prefix": "/tasks/api/v1.php",
       "header": "Authorization: Bearer",
-      "configured": false
+      "configured": true
     },
     "endpoint": {
       "scheme": "https",
@@ -54,6 +65,35 @@
       "path": "/tasks/api/v1.php",
       "redirects": "disallowed",
       "overridable": false
+    },
+    "schema_notes": {
+      "task.client": "name string (no id)",
+      "task.project": "name string (no id)",
+      "task.assignee": "object|null",
+      "task.status": [
+        "todo",
+        "doing",
+        "approval",
+        "done"
+      ],
+      "task.approval_type": "client|manager|null",
+      "task.due_date": "YYYY-MM-DD|null",
+      "no_blocker_field": true,
+      "no_status_change_timestamp": true,
+      "mapping": "names_only_unverified"
+    },
+    "pagination": {
+      "style": "offset_only",
+      "page_size": 50,
+      "limit_in_body": "forbidden (server returns 403)",
+      "request_cap": 40,
+      "checks": [
+        "duplicate ids",
+        "repeated/non-advancing page",
+        "changing count",
+        "incomplete read",
+        "request cap"
+      ]
     }
   },
   "timezone": "Asia/Jerusalem"

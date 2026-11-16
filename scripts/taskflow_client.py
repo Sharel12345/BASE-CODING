@@ -77,6 +77,50 @@ def call(action, body=None, *, auth_mode=None, key=None, opener=None, timeout=30
     return payload["data"]
 
 
+MAX_REQUESTS = 40  # finite cap on pages per paginated read
+
+
+def paginate(action, list_key, *, id_key="id", max_requests=MAX_REQUESTS, **kw):
+    """Offset-only pagination (never sends `limit`; the server rejects it with 403).
+
+    Returns {records, complete, reported_count, requests, issues}. Never raises on
+    incompleteness: callers must check `complete` and report `issues`.
+    """
+    records, seen, issues = [], set(), []
+    reported, offset, requests = None, 0, 0
+    while True:
+        if requests >= max_requests:
+            issues.append("request cap reached")
+            break
+        body = {"offset": offset} if offset else {}
+        data = call(action, body, **kw)
+        requests += 1
+        page = data.get(list_key)
+        if not isinstance(page, list) or not isinstance(data.get("count"), int):
+            issues.append("unexpected response shape")
+            break
+        if reported is not None and data["count"] != reported:
+            issues.append(f"count changed during read: {reported} -> {data['count']}")
+            reported = data["count"]
+        reported = data["count"] if reported is None else reported
+        if not page:
+            break
+        page_ids = [r[id_key] for r in page]
+        dup = [i for i in page_ids if i in seen] + [i for i in set(page_ids) if page_ids.count(i) > 1]
+        if dup:
+            issues.append(f"duplicate ids returned: {len(dup)}")
+            break  # repeated/non-advancing page or duplicates within a page
+        seen.update(page_ids)
+        records.extend(page)
+        offset += len(page)
+        if offset >= reported:
+            break
+    if len(records) != reported:
+        issues.append(f"incomplete: got {len(records)} of {reported}")
+    return {"records": records, "complete": not issues, "reported_count": reported,
+            "requests": requests, "issues": issues}
+
+
 def verify(**kw):
     """ping, then list counts. Prints no secret and no record contents."""
     print("ping:", "ok", {k: v for k, v in call("ping", **kw).items() if "time" in k.lower()})

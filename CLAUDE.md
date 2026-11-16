@@ -24,8 +24,9 @@ Produce a reliable Hebrew operational report: what needs progress, what is overd
 - `config/sources.json` – TaskFlow connection discovery (no secrets)
 - `config/client-mappings.json` – mapping rules; roster intentionally empty (populate from TaskFlow IDs)
 - `scripts/taskflow_client.py` – read-only API client
-- `scripts/analyze.py` – deterministic reference analyzer (stdlib, offline)
-- `tests/` – synthetic fixtures + checks: `python3 tests/test_analyze.py`
+- `scripts/analyze.py` – deterministic analyzer for the real schema (stdlib, offline; open tasks only, Israel dates, names-only mapping)
+- `scripts/daily_report.py` – end-to-end read-only run: paginated read → analysis → Hebrew summary (writes nothing to disk)
+- `tests/` – synthetic fixtures + checks: `python3 tests/test_analyze.py`, `test_pagination.py`, `test_taskflow_client.py`
 
 ## TaskFlow connection
-TaskFlow API v1 is documented in `config/sources.json`; client: `scripts/taskflow_client.py` (read-only allowlist). Default auth: proxy mode (Network secrets inject the Bearer header; Python sends none). Env mode (`TASKFLOW_API_KEY`) only if explicitly selected. Status stays `configured_unverified` until `python3 scripts/taskflow_client.py` succeeds (ping, then lists) in the current session; until then run in `disconnected` mode.
+TaskFlow API v1 is documented in `config/sources.json`; client: `scripts/taskflow_client.py` (read-only allowlist). Default auth: proxy mode (Network secrets inject the Bearer header; Python sends none). Env mode (`TASKFLOW_API_KEY`) only if explicitly selected. Verified once via `python3 scripts/daily_report.py` (see `config/sources.json` metadata). Re-verify each session before claiming connected. Pagination is offset-only; never send `limit` (403). Report any incomplete read. No stable client/project IDs exist: mapping is by name and unverified. Time in approval is unknown; never infer it from creation date.

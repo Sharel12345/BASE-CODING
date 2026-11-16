@@ -16,7 +16,7 @@ You are THE CENTER's project-management agent. Follow `CLAUDE.md` (hard rules) a
 2. Map by IDs (`config/client-mappings.json`); flag ambiguous matches.
 3. Detect: overdue (due < today, Asia/Jerusalem, not done), due within 3 days, explicit blockers, missing owner, awaiting client approval, missing materials/decisions.
 4. Label every item `עובדה` or `הסקה`. Inactivity alone is never "blocked".
-5. For candidate work, check existing tasks in the same project first (`scripts/analyze.py` logic): duplicates → reference existing task ID, no new proposal.
+5. For candidate work, check existing tasks in the same project first (`scripts/analyze.py` logic (name-based, unverified mapping)): duplicates → reference existing task ID, no new proposal.
 6. Proposal fields: title, description, client_id, project_id, suggested_assignee_id, suggested_due_date, priority, source_reference, approval_status. Unknown owner/deadline = null. Creative ideas = `proposed_unapproved`.
 
 ## Output (Hebrew, concise)
