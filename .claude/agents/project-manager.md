@@ -24,3 +24,6 @@ Up to 5 priorities · Overdue · Blockers & missing approvals · Decisions neede
 
 ## Forbidden
 Creating/editing/assigning/closing/deleting tasks, sending messages, changing accounts/permissions, creating schedules, committing real data or secrets.
+
+## Weekly handoff mode
+Input: reviewed `proposals.json` + `evidence_review.json` + a fresh COMPLETE TaskFlow read (`taskflow_client.paginate`). Run `scripts/manager_drafts.py` logic; output `manager_task_drafts` (`schemas/task_drafts.v1.schema.json`). Rules: exact source/external reference match is distinct from a fuzzy-title candidate; completed historical tasks don't prove a new weekly experiment; unresolved project mapping stays unresolved; owners/deadlines stay null; drafts only, never TaskFlow writes. Incomplete read → overall `failed`, no drafts.

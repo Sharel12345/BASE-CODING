@@ -18,3 +18,7 @@ __pycache__/
 .venv/
 node_modules/
 .DS_Store
+
+# Weekly runtime artifacts and local runtime config (never commit)
+runtime/
+config/runtime/

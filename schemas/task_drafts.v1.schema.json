@@ -1,0 +1,303 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "artifact": {
+      "const": "manager_task_drafts"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "period": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "timezone": {
+          "const": "Asia/Jerusalem"
+        },
+        "compare_start": {
+          "type": "string"
+        },
+        "compare_end": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "timezone",
+        "compare_start",
+        "compare_end"
+      ],
+      "additionalProperties": false
+    },
+    "overall_status": {
+      "enum": [
+        "complete",
+        "partial",
+        "failed"
+      ]
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "taskflow_read": {
+      "type": "object",
+      "properties": {
+        "complete": {
+          "type": "boolean"
+        },
+        "reported_count": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "fetched_count": {
+          "type": "integer"
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "complete",
+        "reported_count",
+        "fetched_count",
+        "issues"
+      ],
+      "additionalProperties": false
+    },
+    "drafts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "draft_id": {
+            "type": "string"
+          },
+          "proposal_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "client_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "project_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mapping_status": {
+            "enum": [
+              "verified",
+              "hypothesis",
+              "unresolved"
+            ]
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hypothesis": {
+            "type": "string"
+          },
+          "success_metric": {
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "high",
+              "normal",
+              "low"
+            ]
+          },
+          "suggested_owner": {
+            "type": "null"
+          },
+          "suggested_deadline": {
+            "type": "null"
+          },
+          "proposed_external_task_key": {
+            "type": "string"
+          },
+          "approval_status": {
+            "const": "proposed_unapproved"
+          },
+          "related_task_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "duplicate_candidates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "task_id": {
+                  "type": "integer"
+                },
+                "url": {
+                  "type": "string"
+                },
+                "match": {
+                  "enum": [
+                    "exact_source_reference",
+                    "fuzzy_title"
+                  ]
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "task_status": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "task_id",
+                "url",
+                "match",
+                "reason",
+                "task_status"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "draft_id",
+          "proposal_id",
+          "title",
+          "description",
+          "client_label",
+          "project_label",
+          "mapping_status",
+          "source_refs",
+          "hypothesis",
+          "success_metric",
+          "priority",
+          "suggested_owner",
+          "suggested_deadline",
+          "proposed_external_task_key",
+          "approval_status",
+          "related_task_urls",
+          "duplicate_candidates"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "already_represented": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "proposal_id": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "integer"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposal_id",
+          "task_id",
+          "url"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "blocked_proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "proposal_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposal_id",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "workload": {
+      "type": "object",
+      "properties": {
+        "open": {
+          "type": "integer"
+        },
+        "overdue": {
+          "type": "integer"
+        },
+        "awaiting_client_approval": {
+          "type": "integer"
+        },
+        "awaiting_manager_approval": {
+          "type": "integer"
+        },
+        "no_owner": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "open",
+        "overdue",
+        "awaiting_client_approval",
+        "awaiting_manager_approval",
+        "no_owner"
+      ],
+      "additionalProperties": false
+    },
+    "writes_performed": {
+      "const": 0
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact",
+    "run_id",
+    "period",
+    "overall_status",
+    "issues",
+    "taskflow_read",
+    "drafts",
+    "already_represented",
+    "blocked_proposals",
+    "workload",
+    "writes_performed"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,106 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "artifact": {
+      "const": "evidence_review"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "period": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "timezone": {
+          "const": "Asia/Jerusalem"
+        },
+        "compare_start": {
+          "type": "string"
+        },
+        "compare_end": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "timezone",
+        "compare_start",
+        "compare_end"
+      ],
+      "additionalProperties": false
+    },
+    "status": {
+      "enum": [
+        "complete",
+        "partial",
+        "failed"
+      ]
+    },
+    "proposals_run_id": {
+      "type": "string"
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "proposal_id": {
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "supported",
+              "needs_correction",
+              "unsupported"
+            ]
+          },
+          "unsupported_claims": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "corrections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "proposal_id",
+          "verdict",
+          "unsupported_claims",
+          "corrections",
+          "evidence_refs"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact",
+    "run_id",
+    "period",
+    "status",
+    "proposals_run_id",
+    "reviews"
+  ],
+  "additionalProperties": false
+}

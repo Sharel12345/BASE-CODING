@@ -1,0 +1,10 @@
+{
+  "_note": "Coordinator-only, read-only Meta tools. Anything not listed is forbidden. No account IDs here.",
+  "allowed_tools": [
+    "ads_get_ad_accounts", "ads_get_field_context", "ads_get_ad_entities", "ads_get_creatives",
+    "ads_get_creative_ads", "ads_get_ad_preview", "ads_insights_performance_trend",
+    "ads_insights_anomaly_signal", "ads_get_opportunity_score"
+  ],
+  "forbidden_prefixes": ["ads_create", "ads_update", "ads_activate", "ads_delete", "ads_boost", "ads_catalog", "ads_pixel_event_create", "ads_pixel_event_update", "ads_pixel_event_delete", "ads_pixel_parameter_create", "ads_pixel_parameter_update", "ads_pixel_parameter_delete", "ads_experiment", "ads_finalize", "ads_creative_upload", "ads_creative_update", "ads_creative_delete", "offer_report"],
+  "verified_accounts_source": "config/runtime/meta-pilot.json (git-ignored; see config/meta-pilot.example.json)"
+}

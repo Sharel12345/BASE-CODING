@@ -1,0 +1,187 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "artifact": {
+      "const": "creative_proposals"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "period": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "timezone": {
+          "const": "Asia/Jerusalem"
+        },
+        "compare_start": {
+          "type": "string"
+        },
+        "compare_end": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "timezone",
+        "compare_start",
+        "compare_end"
+      ],
+      "additionalProperties": false
+    },
+    "status": {
+      "enum": [
+        "complete",
+        "partial",
+        "failed"
+      ]
+    },
+    "source_findings_run_id": {
+      "type": "string"
+    },
+    "proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "proposal_id": {
+            "type": "string"
+          },
+          "status": {
+            "const": "proposed_unapproved"
+          },
+          "client_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "project_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mapping_status": {
+            "enum": [
+              "verified",
+              "hypothesis",
+              "unresolved"
+            ]
+          },
+          "hook": {
+            "type": "string"
+          },
+          "concept": {
+            "type": "string"
+          },
+          "primary_copy": {
+            "type": "string"
+          },
+          "cta": {
+            "type": "string"
+          },
+          "opening_visual": {
+            "type": "string"
+          },
+          "source_finding_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hypotheses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "approval_gates": {
+            "type": "object",
+            "properties": {
+              "fact": {
+                "const": "pending"
+              },
+              "production": {
+                "const": "pending"
+              }
+            },
+            "required": [
+              "fact",
+              "production"
+            ],
+            "additionalProperties": false
+          },
+          "test": {
+            "type": "object",
+            "properties": {
+              "variable": {
+                "type": "string"
+              },
+              "metric": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "variable",
+              "metric"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "proposal_id",
+          "status",
+          "client_label",
+          "project_label",
+          "mapping_status",
+          "hook",
+          "concept",
+          "primary_copy",
+          "cta",
+          "opening_visual",
+          "source_finding_ids",
+          "source_refs",
+          "evidence",
+          "hypotheses",
+          "approval_gates",
+          "test"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact",
+    "run_id",
+    "period",
+    "status",
+    "source_findings_run_id",
+    "proposals"
+  ],
+  "additionalProperties": false
+}

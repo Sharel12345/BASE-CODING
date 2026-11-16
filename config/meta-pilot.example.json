@@ -1,0 +1,6 @@
+{
+  "_note": "Template only. Copy to config/runtime/meta-pilot.json (git-ignored). Mappings are hypotheses unless user-verified.",
+  "verified_accounts": [{"platform": "meta", "account_id": "<ACCOUNT_ID>", "currency": "ILS", "timezone": "Asia/Jerusalem", "client_label": "<LABEL>"}],
+  "project_mappings": [{"project_label": "<LABEL>", "mapping_status": "hypothesis"}],
+  "coverage_gaps": ["Google", "CRM", "other clients"]
+}
