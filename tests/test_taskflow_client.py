@@ -50,5 +50,5 @@ check("default opener disallows redirects", tf._NoRedirect().redirect_request(No
 src = (ROOT / "scripts" / "taskflow_client.py").read_text()
 check("client never prints key or sends X-API-Key", "print(key" not in src and "headers[\"X-API-Key\"]" not in src)
 sj = json.loads((ROOT / "config" / "sources.json").read_text())["taskflow"]
-check("sources.json: proxy mode, not marked connected", sj["auth_mode"] == "proxy" and sj["status"] == "configured_unverified" and sj["verification"]["last_verified"] is None)
+check("sources.json: proxy mode, metadata only, no secrets", sj["auth_mode"] == "proxy" and sj["status"] == "verified_read_only" and sj["verification"]["result"]["tasks_complete"] is True and not any(k in json.dumps(sj) for k in ("Bearer ey", "sk-")))
 sys.exit(0 if ok else 1)
